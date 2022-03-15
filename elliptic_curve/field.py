@@ -49,7 +49,7 @@ class PrimeField:
             def __truediv__(self, rhs):
                 return self.__class__(self * pow(rhs, -1, p))
 
-        self.cls = PrimeFieldElement
+        self.PrimeFieldElement = PrimeFieldElement
 
     def __call__(self, n):
-        return self.cls(n)
+        return self.PrimeFieldElement(n)

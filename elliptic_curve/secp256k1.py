@@ -5,14 +5,15 @@ from .curve import EllipticCurve
 
 #
 # The curve is represented as:
-#   - P:    Prime modulus of the Galois field.
-#   - a, b: Weierstrass curve equation coefficients.
-#           E: y**2 = x**3 + ax + b over the prime field.
-#   - G:    Generator base point (x, y) coordinates.
+#   - P:     Prime modulus of the Galois field.
+#   - a, b:  Weierstrass curve equation coefficients.
+#            E: y**2 = x**3 + ax + b over the prime field.
+#   - G:     Generator base point (x, y) coordinates.
+#   - order: The order of the cyclic group of which G is the generator.
 #
-size = 256
 P = 2**256 - 2**32 - 2**9 - 2**8 - 2**7 - 2**6 - 2**4 - 1
 a, b = 0, 7
+order = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141
 
 Secp256k1 = EllipticCurve(a, b, P)
 
@@ -22,7 +23,7 @@ G = Secp256k1((
 
 
 def generate_private_key():
-    return secrets.randbits(size)
+    return secrets.randbits(32 * 8)
 
 
 def get_public_key(privkey):

@@ -25,6 +25,9 @@ class EllipticCurve:
                 y = delta * (p[0] - x) - p[1]
                 return p.__class__(x, y)
 
+            def __radd__(p, q):
+                return p.__add__(q)
+
             def __mul__(p, n):
                 res = p
                 for bit in bin(n)[3:]:
@@ -33,7 +36,13 @@ class EllipticCurve:
                         res += p
                 return res
 
-        self.cls = Point
+            def __rmul__(p, n):
+                return p.__mul__(n)
+
+        self.Point = Point
+        # Point at Infinity: additive neutral element.
+        # https://crypto.stackexchange.com/q/70507
+        # TODO: self.O = ...
 
     def __call__(self, p):
-        return self.cls(*p)
+        return self.Point(*p)
