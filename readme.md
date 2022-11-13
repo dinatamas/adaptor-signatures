@@ -1,10 +1,9 @@
-Atomic Swaps
-============
+Adaptor Signatures
+==================
 
-A Proof-of-Concept implementation of cross-chain atomic swaps.
+A Proof-of-Concept implementation of two-party two-message adaptor signatures.
 
-Theoretical Background
-----------------------
+## Introduction
 
 ### Elliptic Curve Cryptography
 
@@ -17,19 +16,6 @@ With these mathematical constructs in place, `secp256k1.py` instantiates the act
 that will be used and provides additional parameter values as specified for use within Bitcoin.
 This module also provides functions to generate keys over the Secp256k1 curve.
 
-[1](https://en.wikipedia.org/wiki/Modular_arithmetic)
-[2](https://en.wikipedia.org/wiki/Finite_field_arithmetic)
-[3](https://en.wikipedia.org/wiki/Modular_multiplicative_inverse)
-[4](https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication)
-[5](https://jeremykun.com/2014/02/16/elliptic-curves-as-algebraic-structures/)
-[6](https://crypto.stackexchange.com/q/70507)
-[7](https://fission.codes/blog/everything-you-wanted-to-know-about-elliptic-curve-cryptography/)
-[8](https://cryptobook.nakov.com/asymmetric-key-ciphers/elliptic-curve-cryptography-ecc)
-[9](https://github.com/bitcoin-core/secp256k1)
-[10](https://onyb.gitbook.io/secp256k1-python/)
-[11](https://www.secg.org/sec2-v2.pdf)
-[12](https://en.bitcoin.it/wiki/Secp256k1)
-
 ### Schnorr Signatures
 
 Suppose Alice has a message m and wants to send it to Bob. To prove to Bob the authenticity of the
@@ -37,19 +23,13 @@ message she will create a digital signature s that accompanies the message. If B
 public key then he can verify that in fact the signature for message m was produced by someone who
 knows Alice's private key, i.e. Alice herself. This is the most common 1-of-1 case, but there are
 also m-of-n signatures where out of a total of n authorized signers at least m of them must co-sign
-the message to produce a valid verifiable aggregated signature. For atomic swaps we are interested
-in 2-of-2 signatures, i.e. both parties must sign a message to make it acceptable.
+the message to produce a valid verifiable aggregated signature. In this proof-of-concept we are
+interested in 2-of-2 signatures, i.e. both parties must sign a message to make it acceptable.
 
 The Schnorr signature scheme is a popular choice for implementing such aggregated signatures due to
 its nice mathematical properties. If we have Alice's signature s1 and Bob's signature s2 then we
 can produce the 'common' signature by simply adding them together: s = s1 + s2. This property
 allows us to implement multi-signature schemes very easily.
-
-[1](https://en.wikipedia.org/wiki/Schnorr_signature)
-[2](https://asecuritysite.com/encryption/schnorr_test3)
-[3](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki)
-[4](https://github.com/bitcoin/bips/blob/master/bip-0340/reference.py)
-[5](https://tlu.tarilabs.com/cryptography/introduction-schnorr-signatures)
 
 ### MuSig Protocol
 
@@ -79,11 +59,6 @@ last step however if a single signer withholds their signature while receiving e
 they will be the only one who know the signature. This must be taken into consideration when using
 the protocol.
 
-[1](https://blog.blockstream.com/en-musig-key-aggregation-schnorr-signatures/)
-[2](https://allquantor.at/blockchainbib/pdf/maxwell2018simple.pdf)
-[3](https://tlu.tarilabs.com/cryptography/The_MuSig_Schnorr_Signature_Scheme)
-[4](https://asecuritysite.com/encryption/schnorr_test)
-
 ### Adaptor Signatures
 
 The MuSig protocol is useful for co-signers to prove their agreement on a single message.
@@ -91,7 +66,7 @@ Complications arise when multiple self-interested parties want to co-sign a set 
 the parties may want to cheat - if given a chance - and only produce common signatures for only a
 subset of all messages. In this case the non-atomicity of step (5) of the MuSig protocol poses a
 problem. For simplicity's sake let's only consider the 2-party 2-message scenario which is at the
-heart of the atomic swap problem. Alice wants Bob to sign her message m1 and Bob wants Alice to
+heart of this proof-of-concept. Alice wants Bob to sign her message m1 and Bob wants Alice to
 sign his message m2. The following demonstrates how adaptor signatures solve this problem.
 
 **Notation:**
@@ -192,22 +167,38 @@ Indexing:
      him previously: sA2 = SA2 - o. From here he produces the common signature for message 2
      (sC2 = sA2 + sB2) and proceeds to use it to claim his own part of the agreement.
 
-[1](https://medium.com/crypto-garage/da0663c2adc4)
+## References
 
-### Atomic Swaps
+- https://en.wikipedia.org/wiki/Modular_arithmetic
+- https://en.wikipedia.org/wiki/Finite_field_arithmetic
+- https://en.wikipedia.org/wiki/Modular_multiplicative_inverse
+- https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication
+- https://jeremykun.com/2014/02/16/elliptic-curves-as-algebraic-structures/
+- https://crypto.stackexchange.com/q/70507
+- https://fission.codes/blog/everything-you-wanted-to-know-about-elliptic-curve-cryptography/
+- https://cryptobook.nakov.com/asymmetric-key-ciphers/elliptic-curve-cryptography-ecc
+- https://github.com/bitcoin-core/secp256k1
+- https://onyb.gitbook.io/secp256k1-python/
+- https://www.secg.org/sec2-v2.pdf
+- https://en.bitcoin.it/wiki/Secp256k1
+- https://en.wikipedia.org/wiki/Schnorr_signature
+- https://asecuritysite.com/encryption/schnorr_test3
+- https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki
+- https://github.com/bitcoin/bips/blob/master/bip-0340/reference.py
+- https://tlu.tarilabs.com/cryptography/introduction-schnorr-signatures
+- https://blog.blockstream.com/en-musig-key-aggregation-schnorr-signatures/
+- https://allquantor.at/blockchainbib/pdf/maxwell2018simple.pdf
+- https://tlu.tarilabs.com/cryptography/The_MuSig_Schnorr_Signature_Scheme
+- https://asecuritysite.com/encryption/schnorr_test
+- https://medium.com/crypto-garage/da0663c2adc4
+- https://medium.com/crypto-garage/3f41c8fb221b
+- https://en.bitcoin.it/wiki/Hash_Time_Locked_Contracts
+- https://adiabat.github.io/dlc.pdf
 
-TODO.
+## Tasks
 
-[1](https://medium.com/crypto-garage/3f41c8fb221b)
-
-### Miscellaneous
-
-[1](https://en.bitcoin.it/wiki/Hash_Time_Locked_Contracts)
-[2](https://adiabat.github.io/dlc.pdf)
-
-Tasks
------
-
+* Further explain the differences between Schnorr and MuSig and adaptor signatures.
+* Refactor the code to not use MuSigSession and cached properties.
 * Implement the Tonelli-Shanks algorithm to calculate curve points from x coordinates.
 * Figure out the best way to handle 'infinity' popping up in ECC operations.
 * Write `elliptic_curve` unit tests.
