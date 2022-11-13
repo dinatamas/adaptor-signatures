@@ -201,4 +201,3 @@ Indexing:
 * Refactor the code to not use MuSigSession and cached properties.
 * Implement the Tonelli-Shanks algorithm to calculate curve points from x coordinates.
 * Figure out the best way to handle 'infinity' popping up in ECC operations.
-* Write `elliptic_curve` unit tests.
