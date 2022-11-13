@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from functools import cached_property
 
 from elliptic_curve.secp256k1 import Secp256k1, G, P, order
-from protocol.utils import i2b, b2i, sha256, ptsum
+from protocol.utils import i2b, b2i, sha256
 
 
 @dataclass
@@ -46,7 +46,10 @@ class MuSigSession:
 
     @cached_property
     def Xc(self):
-        return ptsum(b2i(sha256(self.L + i2b(X[0]))) * X for X in sorted(self.Xs))
+        return sum(
+            (b2i(sha256(self.L + i2b(X[0]))) * X for X in sorted(self.Xs)),
+            start=Secp256k1.O
+        )
 
     @cached_property
     def t(self):
@@ -56,7 +59,7 @@ class MuSigSession:
     def Rc(self):
         for i in range(len(self.ts)):
             assert self.ts[i] == sha256(i2b(self.Rs[i][0]))
-        return ptsum(self.Rs)
+        return sum(self.Rs, start=Secp256k1.O)
 
     def c(self, msg):
         return b2i(sha256(i2b(self.Xc[0]) + i2b(self.Rc[0]) + msg))

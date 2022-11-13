@@ -3,7 +3,6 @@
 #
 from functools import reduce
 import hashlib
-from operator import add
 
 
 def i2b(i):
@@ -21,11 +20,3 @@ def sha256(*args):
     for arg in args:
         hasher.update(arg)
     return hasher.digest()
-
-
-#
-# Temporary solution until "Point of Infinity" is implemented.
-# After that, use sum(iterable, start=Secp256k1.O)
-#
-def ptsum(iterable):
-    return reduce(add, iterable)

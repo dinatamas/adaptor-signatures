@@ -8,15 +8,29 @@ class EllipticCurve:
         self.field = field = PrimeField(P)
         self.a = field(a)
         self.b = field(b)
-
+        # Point at Infinity: additive neutral element.
+        # Represented as a point with two None coordinates.
+        # This is a singleton, and will be instantiated later.
+        self.O = None
+        
         class Point(tuple):
             """ https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication """
 
             def __new__(cls, x, y):
+                if x is None and y is None:
+                    if self.O is None:
+                        self.O = super().__new__(cls, (None, None))
+                    return self.O
                 x, y = field(x), field(y)
                 return super().__new__(cls, (x, y))
 
             def __add__(p, q):
+                if p is self.O:
+                    return q
+                if q is self.O:
+                    return p
+                if p == -q:
+                    return self.O
                 if p == q:
                     delta = (3 * p[0] ** 2 + a) / (2 * p[1])
                 else:
@@ -25,10 +39,11 @@ class EllipticCurve:
                 y = delta * (p[0] - x) - p[1]
                 return p.__class__(x, y)
 
-            def __radd__(p, q):
-                return p.__add__(q)
-
             def __mul__(p, n):
+                if n == 0:
+                    return self.O
+                if p is self.O:
+                    return self.O
                 res = p
                 for bit in bin(n)[3:]:
                     res += res
@@ -36,13 +51,16 @@ class EllipticCurve:
                         res += p
                 return res
 
+            def __neg__(p):
+                if p is self.O:
+                    raise ZeroDivisionError('Cannot negate the Point at Infinity.')
+                return p.__class__(p[0], -p[1])
+
             def __rmul__(p, n):
                 return p.__mul__(n)
 
         self.Point = Point
-        # Point at Infinity: additive neutral element.
-        # https://crypto.stackexchange.com/q/70507
-        # TODO: self.O = ...
+        self.O = Point(None, None)
 
-    def __call__(self, p):
-        return self.Point(*p)
+    def __call__(self, x, y):
+        return self.Point(x, y)
