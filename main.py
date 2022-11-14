@@ -2,55 +2,81 @@
 #
 # Elliptic curve crypto and MuSig demo.
 #
-from pprint import pprint
-
 from elliptic_curve.secp256k1 import generate_key_pair
-from protocol.musig import MuSigSession, sum_musig_signatures
+from protocol.musig import sign_message, verify_signature
+from protocol.utils import p2b, sha256
 
 
 if __name__ == '__main__':
-    # The message Alice and Bob want to sign.
-    msg = 'Hello'.encode()
+    # Alice wants to get M1 signed by Bob.
+    # Bob wants to get M2 signed by Alice.
+    M1 = 'Transfer 100 USD from Bob to Alice'.encode()
+    M2 = 'Transfer 100 EUR from Alice to Bob'.encode()
 
-    # These will store Alice's and Bob's data.
-    adata = MuSigSession()
-    bdata = MuSigSession()
+    # Generate permanent private and public keys.
+    xA, XA = generate_key_pair()
+    xB, XB = generate_key_pair()
+    # The list of permanent public keys.
+    # All signing parties must use the same order.
+    Xs = sorted((XA, XB))
 
-    # 1. Generate permanent keys.
-    adata.x, adata.X = generate_key_pair()
-    bdata.x, bdata.X = generate_key_pair()
+    # Step #1 and #2: M1, M2, XA, XB are exchanged.
+    
+    # Generate temporary (nonce) private and public keys.
+    rA1, RA1 = generate_key_pair()
+    rA2, RA2 = generate_key_pair()
+    rB1, RB1 = generate_key_pair()
+    rB2, RB2 = generate_key_pair()
+    # The list of nonce public keys.
+    # All signing parties must use the same order.
+    R1s = sorted((RA1, RB1))
+    R2s = sorted((RA2, RB2))
 
-    # 2. Generate temporary keys (private / public nonces).
-    adata.r, adata.R = generate_key_pair()
-    bdata.r, bdata.R = generate_key_pair()
+    # Hash the public nonces.
+    TA1 = sha256(p2b(RA1))
+    TA2 = sha256(p2b(RA2))
+    TB1 = sha256(p2b(RB1))
+    TB2 = sha256(p2b(RB2))
 
-    # 3. Transfer permanent public keys.
-    adata.Xs = bdata.Xs = [adata.X, bdata.X]
+    # Step #3: TA1, TA2, TB1, TB2 are exchanged.
+    # Step #4: RA1, RA2, RB1, RB2 are exchanged.
 
-    # 4. Transfer commitments.
-    adata.ts = bdata.ts = [adata.t, bdata.t]
+    # Alice verifies.
+    assert sha256(p2b(RB1)) == TB1
+    assert sha256(p2b(RB2)) == TB2
+    # Bob verifies.
+    assert sha256(p2b(RA1)) == TA1
+    assert sha256(p2b(RA2)) == TA2
 
-    # 5. Transfer temporary public keys.
-    adata.Rs = bdata.Rs = [adata.R, bdata.R]
+    # Alice produces the adaptor signatures.
+    o, O = generate_key_pair()
+    sA1 = sign_message(M1, xA, XA, Xs, rA1, RA1, R1s)
+    SA1 = sA1 + o
+    sA2 = sign_message(M2, xA, XA, Xs, rA2, RA2, R2s)
+    SA2 = sA2 + o
 
-    # 6. Prepare individual signatures.
-    alice_sign = adata.sign(msg)
-    bob_sign = bdata.sign(msg)
+    # Step #5: O, SA1, SA2 are exchanged.
 
-    # Verify own signatures.
-    assert not adata.verify(msg, alice_sign)
-    assert not bdata.verify(msg, bob_sign)
+    # Bob also produces his signatures.
+    sB1 = sign_message(M1, xB, XB, Xs, rB1, RB1, R1s)
+    sB2 = sign_message(M2, xB, XB, Xs, rB2, RB2, R2s)
 
-    # Verify each others' signatures.
-    assert not adata.verify(msg, bob_sign)
-    assert not bdata.verify(msg, alice_sign)
+    # Bob verifies that the offset signatures are valid.
+    assert verify_signature(M1, sB1 + SA1, Xs, R1s, offset=O)
+    assert verify_signature(M2, sB2 + SA2, Xs, R2s, offset=O)
 
-    # 7. Verify common (aggregated) signature.
-    common_sign = sum_musig_signatures((alice_sign, bob_sign))
-    assert adata.verify(msg, common_sign)
-    assert bdata.verify(msg, common_sign)
+    # Step #6: Bob transmits sB1 to Alice.
 
-    print('All working correctly!')
-    # TODO: dataclass should also print cached properties!
-    pprint(adata)
-    pprint(bdata)
+    # Step #7: Alice calculates (and reveals) sC1.
+    sC1 = sA1 + sB1
+
+    # From sC1 Bob can recover Alice's signatures, and thus calculate sC2.
+    o = -(sC1 - SA1 - sB1)
+    sA1 = SA1 - o
+    sA2 = SA2 - o
+    sC2 = sA2 + sB2
+
+    # Sanity check: the common signatures are valid.
+    assert verify_signature(M1, sC1, Xs, R1s)
+    assert verify_signature(M2, sC2, Xs, R2s)
+    print('Everything works as expected! :^)')

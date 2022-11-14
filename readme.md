@@ -34,11 +34,11 @@ allows us to implement multi-signature schemes very easily.
 ### MuSig Protocol
 
 MuSig is an improved version of the Schnorr signature scheme which is less susceptible to certain
-types of attacks. This is the algorithm implemented in `musig.py`. To perform a MuSig signature,
-a MuSigSession object must be instantiated. This is basically a container for relevant information
-for one signing participant. It has 'stored' attributes which must be provided from external
-sources (e.g. generated keys, other parties' public keys, etc.) and 'calculated' attributes which
-are derived automatically.
+types of attacks. This is the algorithm implemented in `musig.py`. To learn more about MuSig,
+please refer to https://blog.blockstream.com/en-musig-key-aggregation-schnorr-signatures/.
+This resource points out the necessity of step (3) - a.k.a. the precommit round - in the below
+algorithm, as well as explains the rogue key attack which is the main reason behind using MuSig
+instead of the naive Schnorr multisignature protocol.
 
 The MuSig protocol consists of the following steps:
 
@@ -199,9 +199,3 @@ Indexing:
 - https://medium.com/crypto-garage/3f41c8fb221b
 - https://en.bitcoin.it/wiki/Hash_Time_Locked_Contracts
 - https://adiabat.github.io/dlc.pdf
-
-## Tasks
-
-* Further explain the differences between Schnorr and MuSig.
-* Refactor the code to not use MuSigSession and cached properties.
-* Implement the Tonelli-Shanks algorithm to calculate curve points from x coordinates.

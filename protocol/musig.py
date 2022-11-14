@@ -2,74 +2,61 @@
 # https://tlu.tarilabs.com/cryptography/introduction-schnorr-signatures
 # https://tlu.tarilabs.com/cryptography/The_MuSig_Schnorr_Signature_Scheme
 # https://asecuritysite.com/encryption/schnorr_test3
+# https://medium.com/crypto-garage/da0663c2adc4
+# https://blog.blockstream.com/en-musig-key-aggregation-schnorr-signatures/
 #
-from dataclasses import dataclass
-from functools import cached_property
-
-from elliptic_curve.secp256k1 import Secp256k1, G, P, order
-from protocol.utils import i2b, b2i, sha256
+from elliptic_curve.secp256k1 import Secp256k1, G, order
+from protocol.utils import b2i, p2b, sha256
 
 
-@dataclass
-class MuSigSession:
-    # Stored attributes:
-    x: int                    = None  # own private key
-    X: Secp256k1.Point        = None  # own public key
-    Xs: list[Secp256k1.Point] = None  # all public keys
-    r: int                    = None  # own private nonce
-    R: Secp256k1.Point        = None  # own public nonce
-    Rs: list[Secp256k1.Point] = None  # all public nonces
-    ts: list[bytes]           = None  # all commitments (in same order as Rs)
-
-    # Calculated attributes:
-    # Xc: Secp256k1.Point  - common public key
-    # t: bytes             - own commitment
-    # Rc: Secp256k1.Point  - common public nonce
-
-    # Helper attributes:
-    # L: bytes  - sha256(Xs)
-    # a: int    - sha256(L + X)
-    # c: int    - sha256(Xc + Rc + msg)
-
-    # Caution!
-    # - Do not share your public nonce before receiving all commitments!
-    # - Received commitments should match public nonces! (auto-verified)
-    # - Do NOT reuse values for r and R!
-
-    @cached_property
-    def L(self):
-        return sha256(b''.join(i2b(X[0]) for X in sorted(self.Xs)))
-
-    @cached_property
-    def a(self):
-        return b2i(sha256(self.L + i2b(self.X[0])))
-
-    @cached_property
-    def Xc(self):
-        return sum(
-            (b2i(sha256(self.L + i2b(X[0]))) * X for X in sorted(self.Xs)),
-            start=Secp256k1.O
-        )
-
-    @cached_property
-    def t(self):
-        return sha256(i2b(self.R[0]))
-
-    @cached_property
-    def Rc(self):
-        for i in range(len(self.ts)):
-            assert self.ts[i] == sha256(i2b(self.Rs[i][0]))
-        return sum(self.Rs, start=Secp256k1.O)
-
-    def c(self, msg):
-        return b2i(sha256(i2b(self.Xc[0]) + i2b(self.Rc[0]) + msg))
-
-    def sign(self, msg):
-        return (self.r + self.c(msg) * self.a * self.x) % order
-
-    def verify(self, msg, signature):
-        return G * signature == self.Rc + self.Xc * self.c(msg)
+def _aggregate_permanent_public_keys(Xs):
+    """Given a list of permanent public keys, return the common key."""
+    L = sha256(b''.join(p2b(X) for X in Xs))
+    return sum((b2i(sha256(L + p2b(X))) * X for X in Xs), start=Secp256k1.O)
 
 
-def sum_musig_signatures(signatures):
-    return sum(signatures) % order
+def _aggregate_nonce_public_keys(Rs):
+    """Given a list of nonce public keys, return the common key."""
+    return sum(Rs, start=Secp256k1.O)
+
+
+def sign_message(msg, x, X, Xs, r, R, Rs):
+    """
+    Generate an invididual signature that will be part of a multi-signature.
+
+    Arguments:
+      - msg: The message to be signed.
+      - x: Permanent private key.
+      - X: Permanent public key.
+      - Xs: List of the permanent public keys of all signing parties.
+      - r: Nonce private key.
+      - R: Nonce public key.
+      - Rs: List of the nonce public keys of all signing parties.
+    """
+    XC = _aggregate_permanent_public_keys(Xs)
+    RC = _aggregate_nonce_public_keys(Rs)
+
+    # Generate the signature.
+    L = sha256(b''.join(p2b(X) for X in Xs))
+    a = b2i(sha256(L + p2b(X)))
+    c = b2i(sha256(p2b(XC) + p2b(RC) + msg))
+    return (r + c * a * x) % order
+
+
+def verify_signature(msg, sig, Xs, Rs, offset=Secp256k1.O):
+    """
+    Verifies that a multi-signature is valid for the given message.
+
+    Arguments:
+      - msg: The message corresponding to the signature.
+      - sig: The signature to be verified.
+      - Xs: List of the permanent public keys of all signing parties.
+      - Rs: List of the nonce public keys of all signing parties.
+      - offset: The public offset to tweak the signature with.
+    """
+    XC = _aggregate_permanent_public_keys(Xs)
+    RC = _aggregate_nonce_public_keys(Rs)
+
+    # Validate the signature.
+    c = b2i(sha256(p2b(XC) + p2b(RC) + msg))
+    return G * sig == offset + RC + XC * c
