@@ -16,21 +16,17 @@ if __name__ == '__main__':
     # Generate permanent private and public keys.
     xA, XA = generate_key_pair()
     xB, XB = generate_key_pair()
+
+    # Step #1 and #2: M1, M2, XA, XB are exchanged.
     # The list of permanent public keys.
     # All signing parties must use the same order.
     Xs = sorted((XA, XB))
-
-    # Step #1 and #2: M1, M2, XA, XB are exchanged.
     
     # Generate temporary (nonce) private and public keys.
     rA1, RA1 = generate_key_pair()
     rA2, RA2 = generate_key_pair()
     rB1, RB1 = generate_key_pair()
     rB2, RB2 = generate_key_pair()
-    # The list of nonce public keys.
-    # All signing parties must use the same order.
-    R1s = sorted((RA1, RB1))
-    R2s = sorted((RA2, RB2))
 
     # Hash the public nonces.
     TA1 = sha256(p2b(RA1))
@@ -40,6 +36,10 @@ if __name__ == '__main__':
 
     # Step #3: TA1, TA2, TB1, TB2 are exchanged.
     # Step #4: RA1, RA2, RB1, RB2 are exchanged.
+    # The list of nonce public keys.
+    # All signing parties must use the same order.
+    R1s = sorted((RA1, RB1))
+    R2s = sorted((RA2, RB2))
 
     # Alice verifies.
     assert sha256(p2b(RB1)) == TB1
