@@ -1,3 +1,8 @@
+"""
+https://jeremykun.com/2014/02/16/elliptic-curves-as-algebraic-structures/
+https://cryptobook.nakov.com/asymmetric-key-ciphers/elliptic-curve-cryptography-ecc
+https://onyb.gitbook.io/secp256k1-python/introduction
+"""
 from .field import PrimeField
 
 

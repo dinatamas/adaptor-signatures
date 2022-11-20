@@ -35,10 +35,9 @@ allows us to implement multi-signature schemes very easily.
 
 MuSig is an improved version of the Schnorr signature scheme which is less susceptible to certain
 types of attacks. This is the algorithm implemented in `musig.py`. To learn more about MuSig,
-please refer to https://blog.blockstream.com/en-musig-key-aggregation-schnorr-signatures/.
-This resource points out the necessity of step (3) - a.k.a. the precommit round - in the below
-algorithm, as well as explains the rogue key attack which is the main reason behind using MuSig
-instead of the naive Schnorr multisignature protocol.
+please refer to reference [5]. This resource points out the necessity of step (3) - a.k.a. the
+precommit round - in the below algorithm, as well as explains the rogue key attack which is the
+main reason behind using MuSig instead of the naive Schnorr multisignature protocol.
 
 The MuSig protocol consists of the following steps:
 
@@ -174,28 +173,9 @@ Indexing:
 
 ## References
 
-- https://en.wikipedia.org/wiki/Modular_arithmetic
-- https://en.wikipedia.org/wiki/Finite_field_arithmetic
-- https://en.wikipedia.org/wiki/Modular_multiplicative_inverse
-- https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication
-- https://jeremykun.com/2014/02/16/elliptic-curves-as-algebraic-structures/
-- https://crypto.stackexchange.com/q/70507
-- https://fission.codes/blog/everything-you-wanted-to-know-about-elliptic-curve-cryptography/
-- https://cryptobook.nakov.com/asymmetric-key-ciphers/elliptic-curve-cryptography-ecc
-- https://github.com/bitcoin-core/secp256k1
-- https://onyb.gitbook.io/secp256k1-python/
-- https://www.secg.org/sec2-v2.pdf
-- https://en.bitcoin.it/wiki/Secp256k1
-- https://en.wikipedia.org/wiki/Schnorr_signature
-- https://asecuritysite.com/encryption/schnorr_test3
-- https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki
-- https://github.com/bitcoin/bips/blob/master/bip-0340/reference.py
-- https://tlu.tarilabs.com/cryptography/introduction-schnorr-signatures
-- https://blog.blockstream.com/en-musig-key-aggregation-schnorr-signatures/
-- https://allquantor.at/blockchainbib/pdf/maxwell2018simple.pdf
-- https://tlu.tarilabs.com/cryptography/The_MuSig_Schnorr_Signature_Scheme
-- https://asecuritysite.com/encryption/schnorr_test
-- https://medium.com/crypto-garage/da0663c2adc4
-- https://medium.com/crypto-garage/3f41c8fb221b
-- https://en.bitcoin.it/wiki/Hash_Time_Locked_Contracts
-- https://adiabat.github.io/dlc.pdf
+1. https://medium.com/crypto-garage/da0663c2adc4
+2. https://en.wikipedia.org/wiki/Schnorr_signature
+3. https://tlu.tarilabs.com/cryptography/introduction-schnorr-signatures
+4. https://tlu.tarilabs.com/cryptography/The_MuSig_Schnorr_Signature_Scheme
+5. https://blog.blockstream.com/en-musig-key-aggregation-schnorr-signatures
+6. https://allquantor.at/blockchainbib/pdf/maxwell2018simple.pdf

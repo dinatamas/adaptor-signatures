@@ -15,6 +15,11 @@ def i2b(i):
     return i.to_bytes(32, byteorder='big')
 
 
+# How we represent points as a byte sequence is mostly up to us. The only
+# important thing is that the method remains consistent for all parties.
+# In practice, points are often 'compressed' into just their X coorindate
+# and a parity bit for the Y coordinate. The 'decompression' step requires
+# the calculation of a modular square root (Tonelli-Shanks algorithm).
 def p2b(p):
     """ Point to bytes. """
     return i2b(p[0]) + i2b(p[1])

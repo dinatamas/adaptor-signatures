@@ -1,10 +1,7 @@
-#
-# https://tlu.tarilabs.com/cryptography/introduction-schnorr-signatures
-# https://tlu.tarilabs.com/cryptography/The_MuSig_Schnorr_Signature_Scheme
-# https://asecuritysite.com/encryption/schnorr_test3
-# https://medium.com/crypto-garage/da0663c2adc4
-# https://blog.blockstream.com/en-musig-key-aggregation-schnorr-signatures/
-#
+"""
+https://asecuritysite.com/encryption/schnorr_test3
+https://github.com/bitcoin/bips/blob/master/bip-0340/reference.py
+"""
 from elliptic_curve.secp256k1 import Secp256k1, G, order
 from protocol.utils import b2i, p2b, sha256
 

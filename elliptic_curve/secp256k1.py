@@ -1,3 +1,8 @@
+"""
+https://www.secg.org/sec2-v2.pdf
+https://en.bitcoin.it/wiki/Secp256k1
+https://github.com/bitcoin-core/secp256k1
+"""
 import secrets
 
 from .curve import EllipticCurve
